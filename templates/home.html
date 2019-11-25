@@ -3,9 +3,20 @@
 </head>
 <body>
 <form action="/post" method="POST">
-<h1>Welcome {{username}}</h1>
-<input type="text" name = "blog" placeholder="post" required/> </br>
-<input type="submit" value = Post />
+	<h1>Welcome {{username}}</h1> 
+	<p> Please upload a photo you would like to post. </p>
+	<input type="file" name = "photo" required/> </br>
+</form>
+
+<form action="/select_Friendgroup" method="GET">
+
+{% for line in Friendgroup %}
+<input type="radio" name="designation" value={{line.groupName}}>{{line.groupName}}</input>
+	<br>
+{% endfor %}
+
+<input type="submit" value="Post">
+
 </form>
 
 <style type="text/css">
@@ -28,7 +39,7 @@ Here are photos you can see:
 {% endfor %}
 </table>
 
-<!-- <a href="/select_blogger">Select a blogger</a> -->
+<a href="/select_photo">Select a photo</a>
 <br>
 <a href="/logout">Logout</a>
 
