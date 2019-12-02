@@ -1,6 +1,7 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
+from datetime import datetime
 
 #Initialize the app from Flask
 app = Flask(__name__)
@@ -107,9 +108,12 @@ def home():
 def post():
     username = session['username']
     cursor = conn.cursor();
-    blog = request.form['blog']
-    query = 'INSERT INTO blog (blog_post, username) VALUES(%s, %s)'
-    cursor.execute(query, (blog, username))
+    filepath = request.form['filepath']
+    allFollowers = request.form['allFollowers']
+    allFollowers = 1 if allFollowers == "TRUE" else 0
+    caption = request.form['caption']
+    query = 'INSERT INTO Photo (photoPoster, filepath, allFollowers,caption) VALUES(%s, %s, %s, %s)'
+    cursor.execute(query, (username, filepath, allFollowers,caption))
     conn.commit()
     cursor.close()
     return redirect(url_for('home'))
@@ -147,4 +151,4 @@ app.secret_key = 'some key that you will never guess'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-    app.run('127.0.0.1', 5003, debug = True)
+    app.run('127.0.0.1', 5001, debug = True)
