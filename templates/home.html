@@ -2,10 +2,15 @@
 <head>
 </head>
 <body>
-<form action="/post" method="POST">
 <h1>Welcome {{username}}</h1>
-<input type="text" name = "blog" placeholder="post" required/> </br>
-<input type="submit" value = Post />
+
+<h2>Post a Photo </h2>
+
+<form action="/post" method="POST">
+	<input type="text" name = "filepath" placeholder="filepath of the photo" required/> </br>
+	<input type="text" name = "allFollowers" placeholder="TRUE/FALSE" required/> </br>
+	<input type="text" name = "caption" placeholder="caption"/> </br>
+	<input type="submit" value = Post />
 </form>
 
 <style type="text/css">
@@ -13,8 +18,8 @@
 		border: 1px solid black;
 	}
 </style>
+<h2> Here are photos you can see:</h2>
 
-Here are photos you can see:
 
 <table>
 	<th>photoID</th>
