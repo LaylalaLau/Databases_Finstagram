@@ -2,20 +2,19 @@
 <head>
 </head>
 <body>
-<form action="/post" method="POST">
-	<h1>Welcome {{username}}</h1> 
+<!--<form action="/post" method="POST">
 	<p> Please upload a photo you would like to post. </p>
 	<input type="file" name = "photo" required/> </br>
-</form>
+</form>-->
 
-<form action="/select_Friendgroup" method="GET">
+<!--<form action="/select_Friendgroup" method="GET">
 
 {% for line in Friendgroup %}
 <input type="radio" name="designation" value={{line.groupName}}>{{line.groupName}}</input>
 	<br>
-{% endfor %}
+{% endfor %}-->
 
-<input type="submit" value="Post">
+<h1>Welcome {{username}}</h1> 
 
 </form>
 
@@ -30,14 +29,47 @@ Here are your visible photos:
 <table>
 	<th>photoID</th>
 	<th>photoPoster</th>
+	<th>Comments</th>
 
 {% for line1 in photos %}
 		<tr>
 			<td>{{line1.photoID}}</td>
 			<td>{{line1.photoPoster}}</td>
-		</tr>
+			{% for line2 in comments %}
+				<td>{{line2.username}}
+					    {{line2.commenttime}}
+					 	{{line2.text}}</td>
+			{% endfor %}
+			</tr>
 {% endfor %}
 </table>
+
+<p>Like a photo? Give it a rating between 0~5!</p>
+<form action="/like_photo" method="POST">
+	<p>Rating:</p>
+	<input type="number" name="rating" min="0" max="5">
+	<p>photoID:</p>
+	<input type='number' name="photoID">
+	<input type='submit' value='Rate'>
+</form>
+
+<p>Like a photo? Give it a comment!</p>
+<form action='/comment_photo' method='POST'>
+	<p>Comment</p>
+	<input type="text" name="comment">
+	<p>photoID:</p>
+	<input type='number' name="photoID">
+	<input type='submit' value='Comment'>
+</form>
+
+<p>Like a photo? Give it a tag!</p>
+<form action='/tag_photo' method='POST'>
+	<p>Tag:</p>
+	<input type="text" name="person">
+	<p>photoID:</p>
+	<input type='number' name="photoID">
+	<input type='submit' value='Tag'>
+</form>
 
 <a href="/select_photo">Select a photo</a>
 <br>
