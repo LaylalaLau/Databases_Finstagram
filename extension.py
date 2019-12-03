@@ -10,7 +10,7 @@ SALT = 'cs3083'
 
 #Initialize the app from Flask
 app = Flask(__name__)
-IMAGES_DIR = os.path.join(os.getcwd(), "images")
+IMAGES_DIR = os.path.join(os.getcwd(), "static")
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -135,7 +135,7 @@ def home():
     return render_template('home.html', username=user, photos=data1,comments=data2)
 
         
-@app.route('/post', methods=['POST'])
+"""@app.route('/post', methods=['POST'])
 @login_required
 def post():
     image_file = request.files.get("photo", "")
@@ -144,14 +144,13 @@ def post():
     image_file.save(filepath)
     username = session['username']
     cursor = conn.cursor();
+    id = cursor.lastrowid
     # photo = request.form['photo']
-    query = 'INSERT INTO Photo (photoID, photoPoster, postingDate) VALUES(%s, %s, datetime.datetime.now())'
-    cursor.execute(query, (photo, username))
-    query = "INSERT INTO photo (timestamp, filePath) VALUES (%s, %s)"
-    cursor.execute(query, (time.strftime('%Y-%m-%d %H:%M:%S'), image_name))
+    query = 'INSERT INTO Photo (photoID, photoPoster, postingDate, filePath) VALUES(%s, %s, %s, %s)'
+    cursor.execute(query, (id, username,time.strftime('%Y-%m-%d %H:%M:%S'),image_name))
     conn.commit()
     cursor.close()
-    return redirect(url_for('home'))
+    return redirect(url_for('home'))"""
 
 """
 @app.route("/uploadImage", methods=["POST"])
@@ -201,13 +200,18 @@ def comment_photo():
     #username = session['username']
     #should throw exception if username not found
     user = session['username']
-    comment = request.args['comment']
+    comment = request.form['comment']
+    photoID = request.form["photoID"]
     cursor = conn.cursor();
     query = 'INSERT INTO Comments (username,photoID,commenttime,text) VALUES(%s,%s,%s,%s)'
-    cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),text))
-    cursor.execute(query)
-    #data = cursor.fetchall()
-    cursor.close()
+    try:
+        cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),comment))
+        #data = cursor.fetchall()
+        cursor.close()
+        return ('', 204)
+    except:
+        error = "Invalid comment or you already commented on the picture."
+        return render_template("error.html", error=error)
 
 @app.route('/like_photo',methods=['POST'])
 @login_required
@@ -216,14 +220,18 @@ def like_photo():
     #username = session['username']
     #should throw exception if username not found
     user = session['username']
-    rating = request.args['rating']
+    rating = request.form['rating']
+    photoID = request.form["photoID"]
     cursor = conn.cursor();
     query = 'INSERT INTO Likes (username,photoID,liketime,rating) VALUES(%s,%s,%s,%s)'
-    cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),rating))
-    cursor.execute(query)
-    cursor.close()
-    #return render_template('.html', )
-
+    try:
+        cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),rating))
+        cursor.close()
+        return ('', 204)
+    except:
+        error = "Invalid rating or you already rated the picture."
+        return render_template("error.html", error=error)
+"""
 @app.route('/select_Friendgroup')
 @login_required
 def select_Friendgroup():
@@ -237,7 +245,7 @@ def select_Friendgroup():
     cursor.execute(query)
     data = cursor.fetchall()
     cursor.close()
-    return render_template('home.html', Friendgroup=data)
+    return render_template('home.html', Friendgroup=data)"""
 
 @app.route('/show_photos', methods=["GET", "POST"])
 @login_required
@@ -254,6 +262,52 @@ def show_photos():
     data2 = cursor.fetchall()
     cursor.close()
     return render_template('show_photos.html', photos=data1,likes=data2)
+
+@app.route('/tag_photo',methods=['POST'])
+@login_required
+def tag_photo():
+    #check that user is logged in
+    #username = session['username']
+    #should throw exception if username not found
+    user = session['username']
+    person = request.form['person']
+    photoID = request.form["photoID"]
+    cursor = conn.cursor();
+    if user == person:
+        query = 'INSERT INTO Tagged (username,photoID,tagstatus) VALUES(%s,%s,%s)'
+        try:
+            cursor.execute(query, (user,photoID,True))
+            cursor.close()
+            return ('', 204)
+        except:
+            error = "Invalid entry or the person you are tagging is already tagged in the picture."
+            return render_template("error.html", error=error)
+    else:
+        query = 'SELECT photoID \
+                 FROM Photo \
+                 WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+                       (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                       (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                 ORDER BY postingdate DESC'
+        cursor.execute(query,(person, person))
+        data = cursor.fetchall()
+        flag = False
+        for i in data:
+            if photoID == i['photoID']:
+                flag = True
+        if flag == True:
+            query = 'INSERT INTO Tagged (username,photoID,tagstatus) VALUES(%s,%s,%s)'
+            try:
+                cursor.execute(query, (person,photoID,False))
+                cursor.close()
+                return ('', 204)
+            except:
+                error = "Invalid entry or the person you are tagging is already tagged in the picture."
+                return render_template("error.html", error=error)
+        #Flag is never True? Why
+        else:
+            error = "The person you are tagging cannot view the photo."
+            return render_template("error.html", error=error)
 
 @app.route('/logout')
 def logout():
