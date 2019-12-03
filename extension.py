@@ -125,28 +125,29 @@ def post():
     cursor.close()
     return redirect(url_for('home'))
 
-@app.route('/select_blogger')
-def select_blogger():
+@app.route('/follow_search')
+def follow_search():
     #check that user is logged in
-    #username = session['username']
+    username = session['username']
     #should throw exception if username not found
     
     cursor = conn.cursor();
-    query = 'SELECT DISTINCT username FROM blog'
-    cursor.execute(query)
+    query = 'SELECT DISTINCT username FROM Person WHERE username != %s AND username NOT IN (SELECT username_followed FROM Follow WHERE username_follower = %s)'
+    cursor.execute(query,(username,username))
     data = cursor.fetchall()
     cursor.close()
-    return render_template('select_blogger.html', user_list=data)
+    return render_template('follow_search.html', user_list=data)
 
-@app.route('/show_posts', methods=["GET", "POST"])
-def show_posts():
-    poster = request.args['poster']
+@app.route('/follow')
+def follow():
+    person = request.args['person']
+    username = session['username']
     cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    cursor.execute(query, poster)
-    data = cursor.fetchall()
+    query = 'INSERT INTO Follow (username_followed, username_follower, followstatus) VALUES (%s, %s, %s)'
+    cursor.execute(query, (person,username,False))
+    conn.commit()
     cursor.close()
-    return render_template('show_posts.html', poster_name=poster, posts=data)
+    return render_template('request_sent.html')
 
 @app.route('/logout')
 def logout():
@@ -158,4 +159,4 @@ app.secret_key = 'some key that you will never guess'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-    app.run('127.0.0.1', 5001, debug = True)
+    app.run('127.0.0.1', 5000, debug = True)
