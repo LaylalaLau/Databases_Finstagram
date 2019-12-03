@@ -98,22 +98,29 @@ def home():
                    (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
                                                         (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
              ORDER BY postingdate DESC'
+    query_friendGroups = 'SELECT groupName FROM Friendgroup WHERE groupOwner = %s'
     cursor.execute(query, (user,user))
-    data = cursor.fetchall()
+    photos = cursor.fetchall()
+    cursor.execute(query_friendGroups, (user))
+    friendGroups = cursor.fetchall()
     cursor.close()
-    return render_template('home.html', username=user, photos=data)
+    return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups)
 
         
 @app.route('/post', methods=['GET', 'POST'])
 def post():
     username = session['username']
     cursor = conn.cursor();
-    filepath = request.form['filepath']
-    allFollowers = request.form['allFollowers']
-    allFollowers = 1 if allFollowers == "TRUE" else 0
+    photoFile = request.form['photoFile']
+    visibleTo = request.form['visibleTo']
+    allFollowers = 1 if visibleTo == "All Followers" else 0
     caption = request.form['caption']
-    query = 'INSERT INTO Photo (photoPoster, filepath, allFollowers,caption) VALUES(%s, %s, %s, %s)'
-    cursor.execute(query, (username, filepath, allFollowers,caption))
+    query_photo = 'INSERT INTO Photo (photoPoster, filepath, allFollowers,caption) VALUES(%s, %s, %s, %s)'
+    cursor.execute(query_photo, (username, photoFile, allFollowers,caption))
+    if visibleTo != "All Followers":
+        photoID = cursor.lastrowid
+        query_sharedWith = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES(%s, %s, %s)'
+        cursor.execute(query_sharedWith, (username, visibleTo, photoID))
     conn.commit()
     cursor.close()
     return redirect(url_for('home'))
