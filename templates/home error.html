@@ -30,12 +30,18 @@ Here are your visible photos:
 <table>
 	<th>photoID</th>
 	<th>photoPoster</th>
+	<!--<th>Comments</th>-->
 
 {% for line1 in photos %}
+	<!--{% for line2 in comments %}-->
 		<tr>
 			<td>{{line1.photoID}}</td>
 			<td>{{line1.photoPoster}}</td>
+			<!--<td>{{line2.username}}
+			    {{line2.commenttime}}
+			 	{{line2.text}}</td>-->
 		</tr>
+	<!-- {% endfor %} -->
 {% endfor %}
 </table>
 

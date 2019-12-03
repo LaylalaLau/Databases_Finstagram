@@ -16,19 +16,23 @@
 	<th>first name</th>
 	<th>last name</th>
 	<th>postingdate</th>
+	<th>likes</th>
 	<th>like</th>
 	<th>comment</th>
 {% for line1 in photos %}
+	{% for line2 in likes %}
 		<tr>
-			<td>{{line1.photoID}}</td>
-			<td><img src="static/{{line1.filepath}}" width="300" /></td>>
-			<td>{{line1.photoPoster}}</td>
-			<td>{{line1.firstName}}</td>
-			<td>{{line1.lastName}}</td>
-			<td>{{line1.postingdate}}</td>
+			<td>{{line1.Ph.photoID}}</td>
+			<td><img src="static/{{line1.Ph.filepath}}" width="300" /></td>>
+			<td>{{line1.Ph.photoPoster}}</td>
+			<td>{{line1.Pe.firstName}}</td>
+			<td>{{line1.Pe.lastName}}</td>
+			<td>{{line1.Ph.postingdate}}</td>
+			<td>{{line2.username}},{{line2.rating}}</td>
 			<td><form action="/like_photo" method="POST"><input type="number" name="rating"><input type="submit" value="Rate"></form></td>
 			<td><form action="/comment_photo" method="POST"><input type="text" name="comment"><input type="submit" value="Comment"></form></td>
 		</tr>
+	{% endfor %}
 {% endfor %}
 </table>
 
