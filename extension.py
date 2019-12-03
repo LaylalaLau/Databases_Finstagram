@@ -33,8 +33,8 @@ def login_required(f):
 #Define a route to hello function
 @app.route("/")
 def index():
-    #if "username" in session:
-        #return redirect(url_for("home"))
+    if "username" in session:
+        return redirect(url_for("home"))
     return render_template("index.html")
 
 #Define route for login
@@ -53,7 +53,7 @@ def loginAuth():
     #grabs information from the forms
     username = request.form['username']
     password = request.form['password']
-    #hashedPassword = hashlib.sha256(plaintextPasword.encode("utf-8")).hexdigest()
+    hashedPassword = hashlib.sha256(password.encode("utf-8")).hexdigest()
     
     #cursor used to send queries
     cursor = conn.cursor()
@@ -81,7 +81,7 @@ def registerAuth():
     #grabs information from the forms
     username = request.form['username']
     password = request.form['password']
-    #hashedPassword = hashlib.sha256(plaintextPasword.encode("utf-8")).hexdigest()
+    hashedPassword = hashlib.sha256(password.encode("utf-8")).hexdigest()
     #firstName = request.form["fname"]
     #lastName = request.form["lname"]
 
@@ -114,13 +114,25 @@ def home():
     query = 'SELECT photoID, photoPoster \
              FROM Photo \
              WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
-                   (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                   (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
                                                         (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
              ORDER BY postingdate DESC'
     cursor.execute(query, (user,user))
-    data = cursor.fetchall()
+    data1 = cursor.fetchall()
+    query = 'CREATE OR REPLACE VIEW visiblePhotos AS  \
+                                    SELECT photoID, photoPoster \
+                                    FROM Photo \
+                                    WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+                                          (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                                               (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                    ORDER BY postingdate DESC'
+    cursor.execute(query, (user,user))
+    query = 'SELECT C.username AS username,C.commenttime AS commenttime,C.text AS text\
+             FROM visiblePhotos vP JOIN Comments C USING(photoID)'
+    cursor.execute(query)
     cursor.close()
-    return render_template('home.html', username=user, photos=data)
+    data2 = cursor.fetchall()
+    return render_template('home.html', username=user, photos=data1,comments=data2)
 
         
 @app.route('/post', methods=['POST'])
@@ -166,14 +178,51 @@ def select_photo():
     #check that user is logged in
     #username = session['username']
     #should throw exception if username not found
-    
+    user = session['username']
     cursor = conn.cursor();
-    query = 'SELECT DISTINCT photoID FROM blog'
-    # Fix this later!!!
+    query = 'CREATE OR REPLACE VIEW visiblePhotos AS  \
+                                    SELECT photoID, photoPoster \
+                                    FROM Photo \
+                                    WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+                                          (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                                               (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                    ORDER BY postingdate DESC'
+    cursor.execute(query, (user,user))
+    query = 'SELECT *  FROM visiblePhotos'
     cursor.execute(query)
     data = cursor.fetchall()
     cursor.close()
-    return render_template('select_photo.html', photo_list=data)
+    return render_template('select_photos.html', photo_list=data)
+
+@app.route('/comment_photo',methods=['POST'])
+@login_required
+def comment_photo():
+    #check that user is logged in
+    #username = session['username']
+    #should throw exception if username not found
+    user = session['username']
+    comment = request.args['comment']
+    cursor = conn.cursor();
+    query = 'INSERT INTO Comments (username,photoID,commenttime,text) VALUES(%s,%s,%s,%s)'
+    cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),text))
+    cursor.execute(query)
+    #data = cursor.fetchall()
+    cursor.close()
+
+@app.route('/like_photo',methods=['POST'])
+@login_required
+def like_photo():
+    #check that user is logged in
+    #username = session['username']
+    #should throw exception if username not found
+    user = session['username']
+    rating = request.args['rating']
+    cursor = conn.cursor();
+    query = 'INSERT INTO Likes (username,photoID,liketime,rating) VALUES(%s,%s,%s,%s)'
+    cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),rating))
+    cursor.execute(query)
+    cursor.close()
+    #return render_template('.html', )
 
 @app.route('/select_Friendgroup')
 @login_required
@@ -195,12 +244,16 @@ def select_Friendgroup():
 def show_photos():
     photo = request.args['photo']
     cursor = conn.cursor();
-    query = 'SELECT ts, blog_post FROM blog WHERE username = %s ORDER BY ts DESC'
-    # Fix query!!!
+    query = 'SELECT Ph.photoID,Ph.filepath,Ph.photoPoster,Pe.firstName, Pe.lastName, Ph.postingdate \
+             FROM Photo Ph JOIN Person Pe ON Ph.photoPoster = Pe.username \
+             WHERE photoID = %s'
     cursor.execute(query, photo)
-    data = cursor.fetchall()
+    data1 = cursor.fetchall()
+    query = 'SELECT username, rating FROM Likes WHERE photoID = %s'
+    cursor.execute(query, photo)
+    data2 = cursor.fetchall()
     cursor.close()
-    return render_template('show_photos.html', photos=data)
+    return render_template('show_photos.html', photos=data1,likes=data2)
 
 @app.route('/logout')
 def logout():
