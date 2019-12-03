@@ -2,35 +2,47 @@
 <head>
 </head>
 <body>
-<h1>Welcome {{username}}</h1>
+	<h1>Welcome {{username}}</h1>
 
-<h2>Post a Photo </h2>
+	<h2>Post a Photo </h2>
 
-<form action="/post" method="POST">
-	<input type="text" name = "filepath" placeholder="filepath of the photo" required/> </br>
-	<input type="text" name = "allFollowers" placeholder="TRUE/FALSE" required/> </br>
-	<input type="text" name = "caption" placeholder="caption"/> </br>
+	<form action="/post" method="POST">
+		<input type="file" name="photoFile"></br>
+		<!-- <input type="text" name = "filepath" placeholder="filepath of the photo" required/> </br> -->
+		<!-- <input type="text" name = "allFollowers" placeholder="TRUE/FALSE" required/> </br> -->
+		<p>Choose group to share:</p>
+		<select name = "visibleTo">
+			<option>All Followers</option>
+			{% for line in friendGroups %}
+			<option >
+				{{line.groupName}}
+			</option>
+			{% endfor %}
+		</select>
+	</br>
+	<p>Write a caption:</p>
+	<input type="text" name = "caption" placeholder="caption"/> </br></br>
 	<input type="submit" value = Post />
 </form>
 
 <style type="text/css">
-	table, th, td{
-		border: 1px solid black;
-	}
+table, th, td{
+	border: 1px solid black;
+}
 </style>
-<h2> Here are photos you can see:</h2>
+<h2> Photos from your friends:</h2>
 
 
 <table>
 	<th>photoID</th>
 	<th>photoPoster</th>
 
-{% for line in photos %}
+	{% for line in photos %}
 	<tr>
 		<td>{{line.photoID}}</td>
 		<td>{{line.photoPoster}}</td>
 	</tr>
-{% endfor %}
+	{% endfor %}
 </table>
 
 <!-- <a href="/select_blogger">Select a blogger</a> -->
