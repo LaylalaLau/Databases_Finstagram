@@ -7,9 +7,8 @@
 	<h2>Post a Photo </h2>
 
 	<form action="/post" method="POST">
-		<input type="file" name="photoFile" required></br>
-		<!-- <input type="text" name = "filepath" placeholder="filepath of the photo" required/> </br> -->
-		<!-- <input type="text" name = "allFollowers" placeholder="TRUE/FALSE" required/> </br> -->
+		<!-- <input type="file" name="photoFile" required></br> -->
+		<input type="text" name = "filepath" placeholder="filepath of the photo" required/> </br>
 		<p>Choose group to share:</p>
 		<select name = "visibleTo">
 			<option>All Followers</option>
@@ -18,17 +17,16 @@
 				{{line.groupName}}
 			</option>
 			{% endfor %}
-		</select>
-	</br>
-	<p>Write a caption:</p>
-	<input type="text" name = "caption" placeholder="caption"/> </br></br>
-	<input type="submit" value = Post />
-</form>
+		</select></br>
+		<p>Write a caption:</p>
+		<input type="text" name = "caption" placeholder="caption"/> </br></br>
+		<input type="submit" value = Post />
+	</form>
 
-<style type="text/css">
-table, th, td{
-	border: 1px solid black;
-}
+	<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
 </style>
 <h2> Photos from your friends:</h2>
 
@@ -49,6 +47,7 @@ table, th, td{
 <br>
 <a href="/follow_search">Follow People</a></br>
 <a href="/check_requests">Follow Requests</a></br></br>
+<a href="/select_tag">Tag People</a></br>
 <a href="/logout">Logout</a>
 
 </body>
