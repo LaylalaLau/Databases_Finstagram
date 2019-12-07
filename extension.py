@@ -1,7 +1,6 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
-from datetime import datetime
 
 #Initialize the app from Flask
 app = Flask(__name__)
@@ -107,16 +106,19 @@ def home():
     return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups)
 
         
-@app.route('/post', methods=['GET', 'POST'])
+@app.route('/post')
 def post():
     username = session['username']
     cursor = conn.cursor();
-    photoFile = request.form['photoFile']
+    filepath = request.files["photoFile"]
+#    photoFile = request.files.get("photoFile","")
+#    imageName = photoFile.filename
+#    filepath = os.path.join(IMAGES_DIR)
     visibleTo = request.form['visibleTo']
     allFollowers = 1 if visibleTo == "All Followers" else 0
     caption = request.form['caption']
     query_photo = 'INSERT INTO Photo (photoPoster, filepath, allFollowers,caption) VALUES(%s, %s, %s, %s)'
-    cursor.execute(query_photo, (username, photoFile, allFollowers,caption))
+    cursor.execute(query_photo, (username, filepath, allFollowers,caption))
     if visibleTo != "All Followers":
         photoID = cursor.lastrowid
         query_sharedWith = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES(%s, %s, %s)'
@@ -149,6 +151,43 @@ def follow():
     cursor.close()
     return render_template('request_sent.html')
 
+@app.route('/check_requests')
+def check_requests():
+    username = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT DISTINCT username_follower FROM Follow WHERE username_followed = %s AND followstatus = 0'
+    cursor.execute(query,username)
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('check_requests.html', user_list=data)
+
+@app.route('/handle_request')
+def handle_request():
+    username = session['username'] 
+    decision = request.args['decisions']
+    peopleList = request.args.getlist('person')
+    
+    cursor = conn.cursor()
+    if decision == 'Accept':
+        query = 'UPDATE Follow SET followstatus = 1 WHERE username_followed = %s AND username_follower = %s'
+    else:
+        query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower = %s'
+    for person in peopleList:
+        cursor.execute(query,(username,person))
+    conn.commit()
+    cursor.close()
+#    check_requests()
+    return redirect(url_for('check_requests'))
+    
+#@app.route('/decline')
+#def decline(person):
+#    username = session['username']    
+#    cursor = conn.cursor()
+#    query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower = %s'
+#    cursor.execute(query,(username,person))
+#    conn.commit()
+#    cursor.close()
+#    check_requests()
 @app.route('/logout')
 def logout():
     session.pop('username')
@@ -159,4 +198,4 @@ app.secret_key = 'some key that you will never guess'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-    app.run('127.0.0.1', 5000, debug = True)
+    app.run('127.0.0.1', 5001, debug = True)
