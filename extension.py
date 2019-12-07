@@ -93,12 +93,13 @@ def home():
     cursor = conn.cursor();
     query =  'SELECT photoID, photoPoster \
              FROM Photo \
-             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
                    (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
-                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+             photoPoster = %s \
              ORDER BY postingdate DESC'
     query_friendGroups = 'SELECT groupName FROM Friendgroup WHERE groupOwner = %s'
-    cursor.execute(query, (user,user))
+    cursor.execute(query, (user,user,user))
     photos = cursor.fetchall()
     cursor.execute(query_friendGroups, (user))
     friendGroups = cursor.fetchall()
@@ -106,14 +107,13 @@ def home():
     return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups)
 
         
-@app.route('/post')
+@app.route('/post', methods=["GET", "POST"])
 def post():
     username = session['username']
     cursor = conn.cursor();
-    filepath = request.files["photoFile"]
-#    photoFile = request.files.get("photoFile","")
-#    imageName = photoFile.filename
-#    filepath = os.path.join(IMAGES_DIR)
+    filepath = request.form['filepath']
+#    photoFile = request.files['photoFile']
+#    filepath = photoFile.filename
     visibleTo = request.form['visibleTo']
     allFollowers = 1 if visibleTo == "All Followers" else 0
     caption = request.form['caption']
@@ -188,6 +188,62 @@ def handle_request():
 #    conn.commit()
 #    cursor.close()
 #    check_requests()
+@app.route('/select_tag')
+def select_tag():
+    user = session['username']
+    cursor = conn.cursor();
+    query_photo =  'SELECT photoID, photoPoster \
+             FROM Photo \
+             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
+                   (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+             photoPoster = %s \
+             ORDER BY postingdate DESC'
+    query_people = 'SELECT username FROM Person'
+    cursor.execute(query_photo, (user,user,user))
+    photos = cursor.fetchall()
+    cursor.execute(query_people)
+    people = cursor.fetchall()
+    cursor.close()
+    return render_template('tag.html', username=user, photos=photos, people = people)
+
+@app.route('/tag')
+def tag():
+    cursor = conn.cursor()
+    user = session['username']
+    photo = request.args['photo']
+    person = request.args['person']
+    if user == person:
+        query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES (%s, %s, 1)'
+        cursor.execute(query, (person,photo))
+        result = "self"
+        return render_template('tag_result.html', result = result)
+    else:
+#       check whether the photo is visible to person
+        query_check = 'SELECT photoID, photoPoster \
+             FROM Photo \
+             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
+                   (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+             photoPoster = %s \
+             ORDER BY postingdate DESC'
+        cursor.execute(query_check, (person,person,person))
+        people = cursor.fetchall()
+        for row in people:
+            if photo in row:
+                query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES (%s, %s, 0)'
+                cursor.execute(query, (person,photo))
+                result = "person"
+                return render_template('tag_result.html', result = result)
+        result = "not visible"
+        return render_template('tag_result.html', result = result)
+        
+            
+                 
+        
+    
+    
+    
 @app.route('/logout')
 def logout():
     session.pop('username')
