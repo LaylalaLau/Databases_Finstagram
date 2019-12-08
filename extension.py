@@ -235,7 +235,46 @@ def select_photo():
     cursor.execute(query)
     data = cursor.fetchall()
     cursor.close()
-    return render_template('select_photos.html', photo_list=data)     
+    return render_template('select_photos.html', photo_list=data)
+  
+@app.route('/comment_photo',methods=['POST'])
+@login_required
+def comment_photo():
+    #check that user is logged in
+    #username = session['username']
+    #should throw exception if username not found
+    user = session['username']
+    comment = request.form['comment']
+    photoID = request.form["photoID"]
+    cursor = conn.cursor();
+    query = 'INSERT INTO Comments (username,photoID,commenttime,text) VALUES(%s,%s,%s,%s)'
+    try:
+        cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),comment))
+        #data = cursor.fetchall()
+        cursor.close()
+        return ('', 204)
+    except:
+        error = "Invalid comment or you already commented on the picture."
+        return render_template("error.html", error=error)
+
+@app.route('/like_photo',methods=['POST'])
+@login_required
+def like_photo():
+    #check that user is logged in
+    #username = session['username']
+    #should throw exception if username not found
+    user = session['username']
+    rating = request.form['rating']
+    photoID = request.form["photoID"]
+    cursor = conn.cursor();
+    query = 'INSERT INTO Likes (username,photoID,liketime,rating) VALUES(%s,%s,%s,%s)'
+    try:
+        cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),rating))
+        cursor.close()
+        return ('', 204)
+    except:
+        error = "Invalid rating or you already rated the picture."
+        return render_template("error.html", error=error)
 
 @app.route('/logout')
 def logout():
