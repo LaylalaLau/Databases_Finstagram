@@ -1,11 +1,13 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
+
 import hashlib
 #Initialize the app from Flask
 app = Flask(__name__)
 import time
 SALT = 'cs3083'
+
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -15,6 +17,7 @@ conn = pymysql.connect(host='localhost',
                        db='Finstagram',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
+
 
 def login_required(f):
     @wraps(f)
@@ -30,6 +33,7 @@ def index():
     if "username" in session:
         return redirect(url_for("home"))
     return render_template("index.html")
+
 
 #Define route for login
 @app.route('/login')
@@ -47,8 +51,10 @@ def loginAuth():
     #grabs information from the forms
     username = request.form['username']
     password = request.form['password']
+
     hashedPassword = hashlib.sha256(password.encode("utf-8")).hexdigest()
     
+
     #cursor used to send queries
     cursor = conn.cursor()
     #executes query
@@ -106,16 +112,93 @@ def home():
     cursor = conn.cursor();
     query =  'SELECT photoID, photoPoster \
              FROM Photo \
-             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
                    (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
-                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+             photoPoster = %s \
              ORDER BY postingdate DESC'
-    cursor.execute(query, (user,user))
-    data = cursor.fetchall()
+    query_friendGroups = 'SELECT groupName FROM Friendgroup WHERE groupOwner = %s'
+    cursor.execute(query, (user,user,user))
+    photos = cursor.fetchall()
+    cursor.execute(query_friendGroups, (user))
+    friendGroups = cursor.fetchall()
     cursor.close()
-    return render_template('home.html', username=user, photos=data)
+    return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups)
 
         
+@app.route('/post', methods=["GET", "POST"])
+def post():
+    username = session['username']
+    cursor = conn.cursor();
+    filepath = request.form['filepath']
+#    photoFile = request.files['photoFile']
+#    filepath = photoFile.filename
+    visibleTo = request.form['visibleTo']
+    allFollowers = 1 if visibleTo == "All Followers" else 0
+    caption = request.form['caption']
+    query_photo = 'INSERT INTO Photo (photoPoster, filepath, allFollowers,caption) VALUES(%s, %s, %s, %s)'
+    cursor.execute(query_photo, (username, filepath, allFollowers,caption))
+    if visibleTo != "All Followers":
+        photoID = cursor.lastrowid
+        query_sharedWith = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES(%s, %s, %s)'
+        cursor.execute(query_sharedWith, (username, visibleTo, photoID))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('home'))
+
+@app.route('/follow_search')
+def follow_search():
+    #check that user is logged in
+    username = session['username']
+    #should throw exception if username not found
+    
+    cursor = conn.cursor();
+    query = 'SELECT DISTINCT username FROM Person WHERE username != %s AND username NOT IN (SELECT username_followed FROM Follow WHERE username_follower = %s)'
+    cursor.execute(query,(username,username))
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('follow_search.html', user_list=data)
+
+@app.route('/follow')
+def follow():
+    person = request.args['person']
+    username = session['username']
+    cursor = conn.cursor();
+    query = 'INSERT INTO Follow (username_followed, username_follower, followstatus) VALUES (%s, %s, %s)'
+    cursor.execute(query, (person,username,False))
+    conn.commit()
+    cursor.close()
+    return render_template('request_sent.html')
+
+@app.route('/check_requests')
+def check_requests():
+    username = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT DISTINCT username_follower FROM Follow WHERE username_followed = %s AND followstatus = 0'
+    cursor.execute(query,username)
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('check_requests.html', user_list=data)
+
+@app.route('/handle_request')
+def handle_request():
+    username = session['username'] 
+    decision = request.args['decisions']
+    peopleList = request.args.getlist('person')
+    
+    cursor = conn.cursor()
+    if decision == 'Accept':
+        query = 'UPDATE Follow SET followstatus = 1 WHERE username_followed = %s AND username_follower = %s'
+    else:
+        query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower = %s'
+    for person in peopleList:
+        cursor.execute(query,(username,person))
+    conn.commit()
+    cursor.close()
+#    check_requests()
+    return redirect(url_for('check_requests'))
+    
+    
 
 @app.route('/logout')
 def logout():
@@ -127,4 +210,5 @@ app.secret_key = 'some key that you will never guess'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-    app.run('127.0.0.1', 5003, debug = True)
+    app.run('127.0.0.1', 5000, debug = True)
+

@@ -1,0 +1,29 @@
+<html>
+<head>
+</head>
+<body>
+
+
+Whose do you want to follow?
+<br>
+
+<form action="/follow">
+
+
+{% for line in user_list %}
+<input type="radio" name="person" value={{line.username}}>{{line.username}}</input>
+	<br>
+{% endfor %}
+
+<input type="submit" value="Follow">
+
+</form>
+
+
+<a href="/home">home</a></br>
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>

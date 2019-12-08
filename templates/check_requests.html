@@ -1,0 +1,39 @@
+<html>
+<head>
+</head>
+<body>
+    People Who Requested to Follow You:
+</br>
+
+
+<!-- {% for line in user_list %}
+<form action="/handle_request">
+    {{line.username}}
+    <input type="radio" name="decision" value="accept">Accept</input>
+    <input type="radio" name="decision" value="decline">Decline</input>
+    <input type="submit" value="submit">
+</form>
+</br>
+{% endfor %} -->
+<form action="/handle_request">
+{% for line in user_list %}
+    <input type="checkbox" name="person" value={{line.username_follower}}>{{line.username_follower}}</input>
+{% endfor%}
+</br>
+    <input type="radio" name="decisions" value="Accept">Accept</input>
+    <input type="radio" name="decisions" value="Decline">Decline</input></br>
+    <input type="submit" value="submit">
+</form>
+</br>
+
+<a href="/home">home</a></br>
+<a href="/logout">Logout</a>
+
+
+
+
+
+</body>
+
+
+</html>
