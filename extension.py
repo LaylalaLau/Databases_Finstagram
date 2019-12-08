@@ -179,70 +179,6 @@ def handle_request():
 #    check_requests()
     return redirect(url_for('check_requests'))
     
-#@app.route('/decline')
-#def decline(person):
-#    username = session['username']    
-#    cursor = conn.cursor()
-#    query = 'DELETE FROM Follow WHERE username_followed = %s AND username_follower = %s'
-#    cursor.execute(query,(username,person))
-#    conn.commit()
-#    cursor.close()
-#    check_requests()
-@app.route('/select_tag')
-def select_tag():
-    user = session['username']
-    cursor = conn.cursor();
-    query_photo =  'SELECT photoID, photoPoster \
-             FROM Photo \
-             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
-                   (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
-                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
-             photoPoster = %s \
-             ORDER BY postingdate DESC'
-    query_people = 'SELECT username FROM Person'
-    cursor.execute(query_photo, (user,user,user))
-    photos = cursor.fetchall()
-    cursor.execute(query_people)
-    people = cursor.fetchall()
-    cursor.close()
-    return render_template('tag.html', username=user, photos=photos, people = people)
-
-@app.route('/tag')
-def tag():
-    cursor = conn.cursor()
-    user = session['username']
-    photo = request.args['photo']
-    person = request.args['person']
-    if user == person:
-        query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES (%s, %s, 1)'
-        cursor.execute(query, (person,photo))
-        result = "self"
-        return render_template('tag_result.html', result = result)
-    else:
-#       check whether the photo is visible to person
-        query_check = 'SELECT photoID, photoPoster \
-             FROM Photo \
-             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
-                   (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
-                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
-             photoPoster = %s \
-             ORDER BY postingdate DESC'
-        cursor.execute(query_check, (person,person,person))
-        people = cursor.fetchall()
-        for row in people:
-            if photo in row:
-                query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES (%s, %s, 0)'
-                cursor.execute(query, (person,photo))
-                result = "person"
-                return render_template('tag_result.html', result = result)
-        result = "not visible"
-        return render_template('tag_result.html', result = result)
-        
-            
-                 
-        
-    
-    
     
 @app.route('/logout')
 def logout():
@@ -254,4 +190,4 @@ app.secret_key = 'some key that you will never guess'
 #debug = True -> you don't have to restart flask
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
-    app.run('127.0.0.1', 5001, debug = True)
+    app.run('127.0.0.1', 5000, debug = True)
