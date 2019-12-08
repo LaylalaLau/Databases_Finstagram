@@ -293,6 +293,73 @@ def show_photos():
     cursor.close()
     return render_template('show_photos.html', photos=data1,likes=data2)
 
+@app.route('/select_tag')
+def select_tag():
+    user = session['username']
+    cursor = conn.cursor();
+    query_photo =  'SELECT photoID \
+             FROM Photo AS P\
+             WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
+                   (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+             photoPoster = %s \
+             ORDER BY postingdate DESC'
+    query_people = 'SELECT username FROM Person'
+    cursor.execute(query_photo, (user,user,user))
+    photos = cursor.fetchall()
+    cursor.execute(query_people)
+    people = cursor.fetchall()
+    cursor.close()
+    return render_template('tag.html', username=user, photos=photos, people = people)
+
+@app.route('/tag')
+def tag():
+    cursor = conn.cursor()
+    user = session['username']
+    photo = request.args['photo']
+    person = request.args['person']
+    #select people who are tagged in the photo already and whose username is person; if empty then this person is not tagged.
+    query_check_tagged = 'SELECT username FROM Tagged WHERE photoID = %s AND username = %s'
+    cursor.execute(query_check_tagged,(photo,person))
+    count = cursor.rowcount
+
+    if count == 1:
+        cursor.close()
+        result = "tagged before"
+        return render_template('tag_result.html', result = result)
+    else:
+        if user == person:
+            query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES (%s, %s, 1)'
+            cursor.execute(query, (person,photo))
+            result = "self"
+            conn.commit()
+            cursor.close()
+            return render_template('tag_result.html', result = result)
+        else:
+    #       check whether the photo is visible to person
+    #       if the query returns an empty result, the photo is not visible to the person
+            query_check = 'SELECT photoID \
+                 FROM Photo \
+                 WHERE photoID = %s AND (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
+                       (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                            (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+                 photoPoster = %s \
+                 ORDER BY postingdate DESC'
+            cursor.execute(query_check, (photo,person,person,person))
+            count = cursor.rowcount
+            if count == 1:
+                query = 'INSERT INTO Tagged (username, photoID, tagstatus) VALUES (%s, %s, 0)'
+                cursor.execute(query, (person,photo))
+                result = "person"
+                conn.commit()
+                cursor.close()
+                return render_template('tag_result.html', result = result)
+            else:
+                result = "not visible"
+                conn.commit()
+                cursor.close()
+                return render_template('tag_result.html', result = result)
+
 @app.route('/logout')
 def logout():
     session.pop('username')

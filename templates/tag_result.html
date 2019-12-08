@@ -1,0 +1,22 @@
+<html>
+<head>
+</head>
+<body>
+    {%if result == "tagged before"%}
+    This user is alreaday tagged!
+    {%endif%}
+    {%if result == "self"%}
+    Successfully tagged yourself!
+    {%endif%}
+    {%if result == "person"%}
+    Tag request sent!
+    {%endif%}
+    {%if result == "not visible"%}
+    The photo is not visible to this user!
+    {%endif%}
+</br>
+</body>
+<a href="/select_tag">tag another person</a></br>
+<a href="/home">home</a></br>
+<a href="/logout">Logout</a>
+</html>

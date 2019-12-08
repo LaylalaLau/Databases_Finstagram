@@ -1,0 +1,21 @@
+<html>
+<head>
+</head>
+<body>
+    <form action="/tag">
+    Select a photo</br>
+    {%for line in photos%}
+    <input type="radio" name="photo" value={{line.photoID}}>{{line.photoID}}</input></br>
+    {%endfor%}
+    Select a person to tag</br>
+    {%for line in people%}
+    <input type="radio" name="person" value={{line.username}}>{{line.username}}</input></br>
+    {%endfor%}
+    <input type="submit" value="tag"></input></br>
+</form>
+<a href="/home">home</a></br>
+<a href="/logout">Logout</a>
+</body>
+
+
+</html>
