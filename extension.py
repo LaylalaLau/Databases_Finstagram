@@ -212,7 +212,6 @@ def handle_request():
         cursor.execute(query,(username,person))
     conn.commit()
     cursor.close()
-#    check_requests()
     return redirect(url_for('check_requests'))
 
 @app.route('/select_photo')
@@ -340,10 +339,10 @@ def tag():
     #       if the query returns an empty result, the photo is not visible to the person
             query_check = 'SELECT photoID \
                  FROM Photo \
-                 WHERE photoID = %s AND (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
+                 WHERE photoID = %s AND ((allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
                        (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
                                                             (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
-                 photoPoster = %s \
+                 photoPoster = %s) \
                  ORDER BY postingdate DESC'
             cursor.execute(query_check, (photo,person,person,person))
             count = cursor.rowcount
@@ -359,6 +358,31 @@ def tag():
                 conn.commit()
                 cursor.close()
                 return render_template('tag_result.html', result = result)
+
+@app.route('/check_tags')
+def check_tags():
+    user = session['username']
+    cursor = conn.cursor()
+    query = 'SELECT photoID FROM Tagged WHERE username = %s AND tagstatus = 0'
+    cursor.execute(query, user)
+    photos = cursor.fetchall()
+    return render_template('check_tags.html', photos = photos)
+
+@app.route('/handle_tag')
+def handle_tag():
+    username = session['username'] 
+    decision = request.args['decisions']
+    photoList = request.args.getlist('photo')
+    cursor = conn.cursor()
+    if decision == 'Accept':
+        query = 'UPDATE Tagged SET tagstatus = 1 WHERE username = %s AND photoID = %s'
+    else:
+        query = 'DELETE FROM Tagged WHERE username = %s AND photoID = %s'
+    for photo in photoList:
+        cursor.execute(query,(username,photo))
+    conn.commit()
+    cursor.close()
+    return redirect(url_for('check_tags'))
 
 @app.route('/logout')
 def logout():
