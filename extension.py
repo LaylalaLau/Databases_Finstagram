@@ -275,6 +275,22 @@ def like_photo():
     except:
         error = "Invalid rating or you already rated the picture."
         return render_template("error.html", error=error)
+      
+@app.route('/show_photos', methods=["GET", "POST"])
+@login_required
+def show_photos():
+    photo = request.args['photo']
+    cursor = conn.cursor();
+    query = 'SELECT Ph.photoID,Ph.filepath,Ph.photoPoster,Pe.firstName, Pe.lastName, Ph.postingdate \
+             FROM Photo Ph JOIN Person Pe ON Ph.photoPoster = Pe.username \
+             WHERE photoID = %s'
+    cursor.execute(query, photo)
+    data1 = cursor.fetchall()
+    query = 'SELECT username, rating FROM Likes WHERE photoID = %s'
+    cursor.execute(query, photo)
+    data2 = cursor.fetchall()
+    cursor.close()
+    return render_template('show_photos.html', photos=data1,likes=data2)
 
 @app.route('/logout')
 def logout():
