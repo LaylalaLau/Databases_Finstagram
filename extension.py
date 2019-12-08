@@ -2,8 +2,12 @@
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
 
+import hashlib
 #Initialize the app from Flask
 app = Flask(__name__)
+import time
+SALT = 'cs3083'
+
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -14,10 +18,22 @@ conn = pymysql.connect(host='localhost',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
 
+
+def login_required(f):
+    @wraps(f)
+    def dec(*args, **kwargs):
+        if not "username" in session:
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return dec
+
 #Define a route to hello function
-@app.route('/')
-def hello():
-    return render_template('index.html')
+@app.route("/")
+def index():
+    if "username" in session:
+        return redirect(url_for("home"))
+    return render_template("index.html")
+
 
 #Define route for login
 @app.route('/login')
@@ -35,6 +51,9 @@ def loginAuth():
     #grabs information from the forms
     username = request.form['username']
     password = request.form['password']
+
+    hashedPassword = hashlib.sha256(password.encode("utf-8")).hexdigest()
+    
 
     #cursor used to send queries
     cursor = conn.cursor()
@@ -180,6 +199,7 @@ def handle_request():
     return redirect(url_for('check_requests'))
     
     
+
 @app.route('/logout')
 def logout():
     session.pop('username')
@@ -191,3 +211,4 @@ app.secret_key = 'some key that you will never guess'
 #for changes to go through, TURN OFF FOR PRODUCTION
 if __name__ == "__main__":
     app.run('127.0.0.1', 5000, debug = True)
+
