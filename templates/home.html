@@ -36,18 +36,24 @@
 <table>
 	<th>photoID</th>
 	<th>photoPoster</th>
-	<th>Comments</th>
 	
 	{% for line in photos %}
 	<tr>
 		<td>{{line.photoID}}</td>
 		<td>{{line.photoPoster}}</td>
-		{% for line2 in comments %}
-			<td>{{line2.username}}
-			    {{line2.commenttime}}
-			    {{line2.text}}</td>
-			{% endfor %}
 	</tr>
+	{% endfor %}
+</table>
+
+<table>
+	<th>Comments</th>
+	{% for line2 in comments %}
+		<tr>
+			<td>{{line2.photoID}}
+				{{line2.username}}
+				{{line2.commenttime}}
+				{{line2.text}}</td>
+		</tr>
 	{% endfor %}
 </table>
 

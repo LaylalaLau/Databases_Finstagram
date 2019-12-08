@@ -133,7 +133,7 @@ def home():
                                                                                (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
                                     ORDER BY postingdate DESC'
     cursor.execute(query, (user,user))
-    query = 'SELECT C.username AS username,C.commenttime AS commenttime,C.text AS text\
+    query = 'SELECT C.photoID, C.username AS username,C.commenttime AS commenttime,C.text AS text\
              FROM visiblePhotos vP JOIN Comments C USING(photoID)'
     cursor.execute(query)
     cursor.close()
