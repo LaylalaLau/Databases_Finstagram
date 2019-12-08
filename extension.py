@@ -124,8 +124,23 @@ def home():
     photos = cursor.fetchall()
     cursor.execute(query_friendGroups, (user))
     friendGroups = cursor.fetchall()
+    
+    query = 'CREATE OR REPLACE VIEW visiblePhotos AS  \
+                                    SELECT photoID, photoPoster \
+                                    FROM Photo \
+                                    WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+                                          (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                                               (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                    ORDER BY postingdate DESC'
+    cursor.execute(query, (user,user))
+    query = 'SELECT C.username AS username,C.commenttime AS commenttime,C.text AS text\
+             FROM visiblePhotos vP JOIN Comments C USING(photoID)'
+    cursor.execute(query)
     cursor.close()
-    return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups)
+    data2 = cursor.fetchall()
+    
+    cursor.close()
+    return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups,comments=data2)
 
         
 @app.route('/post', methods=["GET", "POST"])
