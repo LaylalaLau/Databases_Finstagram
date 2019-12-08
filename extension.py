@@ -214,8 +214,28 @@ def handle_request():
     cursor.close()
 #    check_requests()
     return redirect(url_for('check_requests'))
-    
-    
+
+@app.route('/select_photo')
+@login_required
+def select_photo():
+    #check that user is logged in
+    #username = session['username']
+    #should throw exception if username not found
+    user = session['username']
+    cursor = conn.cursor();
+    query = 'CREATE OR REPLACE VIEW visiblePhotos AS  \
+                                    SELECT photoID, photoPoster \
+                                    FROM Photo \
+                                    WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
+                                          (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                                               (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                    ORDER BY postingdate DESC'
+    cursor.execute(query, (user,user))
+    query = 'SELECT *  FROM visiblePhotos'
+    cursor.execute(query)
+    data = cursor.fetchall()
+    cursor.close()
+    return render_template('select_photos.html', photo_list=data)     
 
 @app.route('/logout')
 def logout():
