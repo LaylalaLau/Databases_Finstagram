@@ -4,6 +4,7 @@ import pymysql.cursors
 
 import hashlib
 #Initialize the app from Flask
+from functools import wraps
 app = Flask(__name__)
 import time
 SALT = 'cs3083'
@@ -81,6 +82,7 @@ def registerAuth():
     #grabs information from the forms
     username = request.form['username']
     password = request.form['password']
+    hashedPassword = hashlib.sha256(password.encode("utf-8")).hexdigest()
     firstName = request.form['firstName']
     lastName = request.form['lastName']
     bio = request.form['bio']
