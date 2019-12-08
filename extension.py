@@ -1,7 +1,7 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, redirect, url_for, send_file
-import os
-import uuid
+#import os
+#import uuid
 import hashlib
 import pymysql.cursors
 from functools import wraps
@@ -10,7 +10,7 @@ SALT = 'cs3083'
 
 #Initialize the app from Flask
 app = Flask(__name__)
-IMAGES_DIR = os.path.join(os.getcwd(), "static")
+#IMAGES_DIR = os.path.join(os.getcwd(), "static")
 
 #Configure MySQL
 conn = pymysql.connect(host='localhost',
@@ -84,7 +84,7 @@ def registerAuth():
     hashedPassword = hashlib.sha256(password.encode("utf-8")).hexdigest()
     firstName = request.form["fname"]
     lastName = request.form["lname"]
-
+    bio = request.form['bio']
     #cursor used to send queries
     cursor = conn.cursor()
     #executes query
@@ -99,8 +99,8 @@ def registerAuth():
         error = "This user already exists"
         return render_template('register.html', error = error)
     else:
-        ins = 'INSERT INTO Person(username,password) VALUES(%s, %s)'
-        cursor.execute(ins, (username, password))
+        ins = 'INSERT INTO Person(username,password,firstName,lastName,bio) VALUES(%s, %s,%s,%s,%s)'
+        cursor.execute(ins, (username, password,firstName,lastName,bio))
         conn.commit()
         cursor.close()
         return render_template('index.html')
@@ -263,6 +263,7 @@ def show_photos():
     cursor.close()
     return render_template('show_photos.html', photos=data1,likes=data2)
 
+"""
 @app.route('/tag_photo',methods=['POST'])
 @login_required
 def tag_photo():
@@ -308,6 +309,7 @@ def tag_photo():
         else:
             error = "The person you are tagging cannot view the photo."
             return render_template("error.html", error=error)
+"""
 
 @app.route('/logout')
 def logout():
