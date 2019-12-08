@@ -226,12 +226,13 @@ def select_photo():
     query = 'CREATE OR REPLACE VIEW visiblePhotos AS  \
                                     SELECT photoID, photoPoster \
                                     FROM Photo \
-                                    WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s)) OR \
-                                          (photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
-                                                                               (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) \
+                                    WHERE (allFollowers = True AND photoPoster IN (SELECT username_followed FROM Follow WHERE username_follower = %s AND followstatus = 1)) OR \
+                                          (allFollowers = False AND photoID IN (SELECT photoID FROM SharedWith WHERE (groupName,groupOwner) IN \
+                                                        (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
+                                                        photoPoster = %s \
                                     ORDER BY postingdate DESC'
-    cursor.execute(query, (user,user))
-    query = 'SELECT *  FROM visiblePhotos'
+    cursor.execute(query, (user,user,user))
+    query = 'SELECT photoID FROM visiblePhotos'
     cursor.execute(query)
     data = cursor.fetchall()
     cursor.close()
