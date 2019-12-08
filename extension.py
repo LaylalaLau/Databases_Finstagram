@@ -231,8 +231,8 @@ def select_photo():
                                                         (SELECT groupName,owner_username FROM BelongTo WHERE member_username = %s))) OR \
                                                         photoPoster = %s \
                                     ORDER BY postingdate DESC'
-    cursor.execute(query, (user,user))
-    query = 'SELECT *  FROM visiblePhotos'
+    cursor.execute(query, (user,user,user))
+    query = 'SELECT photoID FROM visiblePhotos'
     cursor.execute(query)
     data = cursor.fetchall()
     cursor.close()
