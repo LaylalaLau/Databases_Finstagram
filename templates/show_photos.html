@@ -17,6 +17,7 @@
 	<th>last name</th>
 	<th>postingdate</th>
 	<th>likes</th>
+	<th>taggees</th>
 {% for line1 in photos %}
 	<tr>
 		<td>{{line1.photoID}}</td>
@@ -25,9 +26,12 @@
 		<td>{{line1.firstName}}</td>
 		<td>{{line1.lastName}}</td>
 		<td>{{line1.postingdate}}</td>
-		{% for line2 in likes %}
-		<td>{{line2.username}},{{line2.rating}}</td>
-		{% endfor %}
+		<td>{% for line2 in likes %}
+		{{line2.username}},{{line2.rating}}
+		{% endfor %}</td>
+		<td>{% for line3 in tags %}
+		{{line3.username}},{{line3.firstName}},{{line3.lastName}}{% endfor %}
+	</td>
 	</tr>
 {% endfor %}
 </table>
