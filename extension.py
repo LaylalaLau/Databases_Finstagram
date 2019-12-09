@@ -60,7 +60,7 @@ def loginAuth():
     cursor = conn.cursor()
     #executes query
     query = 'SELECT * FROM Person WHERE username = %s and password = %s'
-    cursor.execute(query, (username, password))
+    cursor.execute(query, (username, hashedPassword))
     #stores the results in a variable
     data = cursor.fetchone()
     #use fetchall() if you are expecting more than 1 data row
@@ -102,7 +102,7 @@ def registerAuth():
         return render_template('register.html', error = error)
     else:
         ins = 'INSERT INTO Person VALUES(%s, %s, %s, %s, %s)'
-        cursor.execute(ins, (username, password, firstName, lastName,bio))
+        cursor.execute(ins, (username, hashedPassword, firstName, lastName,bio))
         conn.commit()
         cursor.close()
         return render_template('index.html')
