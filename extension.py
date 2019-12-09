@@ -289,8 +289,13 @@ def show_photos():
     query = 'SELECT username, rating FROM Likes WHERE photoID = %s'
     cursor.execute(query, photo)
     data2 = cursor.fetchall()
+    query = 'SELECT T.username, firstName, lastName \
+             FROM Tagged T NATURAL JOIN Person P \
+             WHERE photoID = %s AND tagstatus = 1'
+    cursor.execute(query, photo)
+    data3 = cursor.fetchall()      
     cursor.close()
-    return render_template('show_photos.html', photos=data1,likes=data2)
+    return render_template('show_photos.html', photos=data1,likes=data2,tags=data3)
 
 @app.route('/select_tag')
 def select_tag():
