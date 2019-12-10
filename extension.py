@@ -252,7 +252,7 @@ def comment_photo():
         cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),comment))
         #data = cursor.fetchall()
         cursor.close()
-        return ('',204)
+        return render_template("successful.html")
     except:
         error = "Invalid comment or you already commented on the picture."
         return render_template("error.html", error=error)
@@ -271,7 +271,7 @@ def like_photo():
     try:
         cursor.execute(query, (user,photoID,time.strftime('%Y-%m-%d %H:%M:%S'),rating))
         cursor.close()
-        return ('',204)
+        return render_template("successful.html")
     except:
         error = "Invalid rating or you already rated the picture."
         return render_template("error.html", error=error)
