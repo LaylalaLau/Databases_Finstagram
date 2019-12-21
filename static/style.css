@@ -1,0 +1,25 @@
+.head{
+    width: 100%;
+    height: 10%;
+    background-color: red;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+}
+
+#headWord {
+    font-size: 30;
+    width: auto;
+    height: auto;
+    background-color: white;
+    margin: auto;
+}
+
+.icon{
+    background-color: black;
+    margin: 10px;
+}
+a{
+    font-size: 25;
+}

@@ -1,0 +1,93 @@
+<html>
+<head>
+	<title>
+		Finstagram
+	</title>
+</head>
+<body>
+
+	<h1>Welcome {{username}}</h1>
+
+	<h2>Post a Photo </h2>
+
+	<form action="/post" method="POST">
+		<!-- <input type="file" name="photoFile" required></br> -->
+		<input type="text" name = "filepath" placeholder="filepath of the photo" required/> </br>
+		<p>Choose group to share:</p>
+		<select name = "visibleTo">
+			<option>All Followers</option>
+			{% for line in friendGroups %}
+			<option >
+				{{line.groupName}}
+			</option>
+			{% endfor %}
+		</select></br>
+		<p>Write a caption:</p>
+		<input type="text" name = "caption" placeholder="caption"/> </br></br>
+		<input type="submit" value = Post />
+	</form>
+
+	<style type="text/css">
+
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+<h2> Photos Visible:</h2>
+
+
+<table>
+	<th>photoID</th>
+	<th>photoPoster</th>
+
+	{% for line in photos %}
+	<tr>
+		<td>{{line.photoID}}</td>
+		<td>{{line.photoPoster}}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<table>
+	<th>Comments</th>
+	{% for line2 in comments %}
+	<tr>
+		<td>{{line2.photoID}}
+			{{line2.username}}
+			{{line2.commenttime}}
+			{{line2.text}}</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+	<p>Like a photo? Give it a rating between 0~5!</p>
+	<form action="/like_photo" method="POST">
+		<p>Rating:</p>
+		<input type="number" name="rating" min="0" max="5">
+		<p>photoID:</p>
+		<input type='number' name="photoID">
+		<input type='submit' value='Rate'>
+	</form>
+
+	<p>Like a photo? Give it a comment!</p>
+	<form action='/comment_photo' method='POST'>
+		<p>Comment</p>
+		<input type="text" name="comment">
+		<p>photoID:</p>
+		<input type='number' name="photoID">
+		<input type='submit' value='Comment'>
+	</form>
+
+	<a href="/select_photo">Select a photo</a>
+
+	<br>
+	<a href="/follow_search">Follow People</a></br>
+	<a href="/check_requests">Follow Requests</a></br>
+	<a href="/select_tag">Tag People</a></br>
+	<a href="/check_tags">Tag Requests</a></br></br>
+	<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>

@@ -60,7 +60,7 @@ def loginAuth():
     cursor = conn.cursor()
     #executes query
     query = 'SELECT * FROM Person WHERE username = %s and password = %s'
-    cursor.execute(query, (username, hashedPassword))
+    cursor.execute(query, (username, password))
     #stores the results in a variable
     data = cursor.fetchone()
     #use fetchall() if you are expecting more than 1 data row
@@ -142,7 +142,9 @@ def home():
     cursor.close()
     return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups,comments=data2)
 
-        
+#@app.route('/post_page', methods=["GET", "POST"])
+#def post_page():
+#    
 @app.route('/post', methods=["GET", "POST"])
 def post():
     username = session['username']
