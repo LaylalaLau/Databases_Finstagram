@@ -1,6 +1,7 @@
 .headContainer{
     width: 100%;
     height: 5%;
+    margin: 0;
     background-color: red;
     display: flex;
     flex-direction: row;
@@ -23,4 +24,44 @@
 }
 a{
     font-size: 15;
+}
+
+.mainContainer{
+    width: 100%;
+    height: auto;
+    background-color: green;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* padding: 5%; */
+}
+#postAndShow{
+    width: 55%;
+    height: auto;
+    margin-left: 8%;
+    margin-top: 5%;
+    background-color: blue;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+#post, #show, #functions{
+    text-align: center;
+}
+
+#functions{
+    width: 25%;
+    height: auto;
+    margin-top: 5%;
+    margin-left: 5%;
+    background-color: white;
+}
+.subtitle {
+    font-size: 20;
+}
+.postText{
+    width: 85%;
+    height: 50px;
+
 }

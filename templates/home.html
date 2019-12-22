@@ -13,9 +13,6 @@
         <div class="icon" id="home">
             <a href="/home">home</a>
         </div>
-        <div class="icon" id="post">
-            <a href="/post_page">post</a>
-        </div>
 		<div class="icon" id="logout">
             <a href="/logout">logout</a>
         </div>
@@ -28,6 +25,45 @@
     </div>
 
 	<div class="mainContainer">
+		<div id="postAndShow">
+			<div id="post">
+				<form action="/post" method="POST">
+					<!-- <input type="file" name="photoFile" required></br> -->
+					<p class="subtitle">create post</p>
+
+					<input type="text" class="postText" name = "caption" placeholder="What's on your mind?"/> </br>
+					<input type="text" class="postText" name = "filepath" placeholder="filepath of the photo" required/> </br>
+					<select name = "visibleTo">
+						<option>All Followers</option>
+						{% for line in friendGroups %}
+						<option >
+							{{line.groupName}}
+						</option>
+						{% endfor %}
+					</select></br>
+					<input type="submit" value = Post />
+				</form>
+			</div>
+			<div id="show">
+				<table align="center">
+					<th>photoID</th>
+					<th>photoPoster</th>
+
+					{% for line in photos %}
+					<tr>
+						<td>{{line.photoID}}</td>
+						<td>{{line.photoPoster}}</td>
+					</tr>
+					{% endfor %}
+				</table>
+
+			</div>
+		</div>
+		<div id="functions">
+			<a href="/select_tag">Tag People</a></br>
+			<a href="/follow_search">Follow People</a></br>
+		</div>
+	</div>
 </body>
 
 
