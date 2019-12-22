@@ -142,9 +142,9 @@ def home():
     cursor.close()
     return render_template('home.html', username=user, photos=photos,friendGroups = friendGroups,comments=data2)
 
-#@app.route('/post_page', methods=["GET", "POST"])
-#def post_page():
-#    
+@app.route('/post_page', methods=["GET", "POST"])
+def post_page():
+    
 @app.route('/post', methods=["GET", "POST"])
 def post():
     username = session['username']
